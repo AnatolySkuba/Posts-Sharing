@@ -8,6 +8,8 @@ import {
     TouchableOpacity,
     Platform,
     KeyboardAvoidingView,
+    Keyboard,
+    TouchableWithoutFeedback,
     Alert,
 } from "react-native";
 
@@ -21,6 +23,11 @@ const RegistrationScreen = () => {
     const emailHandler = (text) => setEmail(text);
     const passwordHandler = (text) => setPassword(text);
 
+    const keyboardHide = () => {
+        Keyboard.dismiss();
+        setIsShowKeyboard(false);
+    };
+
     const onLogin = () => {
         Alert.alert("Credentials", `${login} + ${password}`);
     };
@@ -29,64 +36,68 @@ const RegistrationScreen = () => {
     console.log(isShowKeyboard, new Date());
 
     return (
-        <View style={styles.container}>
-            <ImageBackground
-                source={require("../../assets/images/bg.jpg")}
-                resizeMode="cover"
-                style={styles.image}
-            >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+        <TouchableWithoutFeedback onPress={keyboardHide}>
+            <View style={styles.container}>
+                <ImageBackground
+                    source={require("../../assets/images/bg.jpg")}
+                    resizeMode="cover"
+                    style={styles.image}
                 >
-                    <View
-                        style={{
-                            ...styles.form,
-                            marginBottom: isShowKeyboard ? 0 : 100,
-                        }}
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
                     >
-                        <Text style={styles.title}>Регистрация</Text>
-                        <TextInput
-                            value={login}
-                            onChangeText={loginHandler}
-                            placeholder="Логин"
-                            onFocus={() => setIsShowKeyboard(true)}
-                            style={styles.input}
-                        />
-                        <TextInput
-                            value={email}
-                            onChangeText={emailHandler}
-                            placeholder="Адрес электронной почты"
-                            style={styles.input}
-                        />
-                        <TextInput
-                            value={password}
-                            onChangeText={passwordHandler}
-                            placeholder="Пароль"
-                            secureTextEntry={true}
-                            style={styles.input}
-                        />
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.btn}
-                            onPress={onLogin}
+                        <View
+                            style={{
+                                ...styles.form,
+                                marginBottom: isShowKeyboard ? 100 : 0,
+                            }}
                         >
-                            <Text style={styles.btnTitle}>
-                                Зарегистрироваться
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.btnLogin}
-                            onPress={onLogin}
-                        >
-                            <Text style={styles.btnLoginText}>
-                                Уже есть аккаунт? Войти
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </KeyboardAvoidingView>
-            </ImageBackground>
-        </View>
+                            <Text style={styles.title}>Регистрация</Text>
+                            <TextInput
+                                value={login}
+                                onChangeText={loginHandler}
+                                placeholder="Логин"
+                                onFocus={() => setIsShowKeyboard(true)}
+                                style={styles.input}
+                            />
+                            <TextInput
+                                value={email}
+                                onChangeText={emailHandler}
+                                placeholder="Адрес электронной почты"
+                                onFocus={() => setIsShowKeyboard(true)}
+                                style={styles.input}
+                            />
+                            <TextInput
+                                value={password}
+                                onChangeText={passwordHandler}
+                                placeholder="Пароль"
+                                onFocus={() => setIsShowKeyboard(true)}
+                                secureTextEntry={true}
+                                style={styles.input}
+                            />
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                style={styles.btn}
+                                onPress={() => onLogin()}
+                            >
+                                <Text style={styles.btnTitle}>
+                                    Зарегистрироваться
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                style={styles.btnLogin}
+                                onPress={() => onLogin()}
+                            >
+                                <Text style={styles.btnLoginText}>
+                                    Уже есть аккаунт? Войти
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </KeyboardAvoidingView>
+                </ImageBackground>
+            </View>
+        </TouchableWithoutFeedback>
     );
 };
 
@@ -97,7 +108,6 @@ const styles = StyleSheet.create({
     image: {
         flex: 1,
         justifyContent: "flex-end",
-        marginBottom: 0,
     },
     form: {
         backgroundColor: "#FFF",
