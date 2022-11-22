@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Camera, CameraType } from "expo-camera";
 import { shareAsync } from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
@@ -17,6 +17,7 @@ import {
 import { useDimensions } from "../hooks/Dimensions";
 
 export default function PhotoCamera({ setState, setIsCamera }) {
+    let cameraRef = useRef();
     const [camera, setCamera] = useState(null);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [permissionResponse] = MediaLibrary.usePermissions();
@@ -24,11 +25,11 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const [photo, setPhoto] = useState(null);
     const [isSavePhoto, setIsSavePhoto] = useState();
     const { dimensions } = useDimensions();
+    const { height, width } = dimensions;
 
     // Screen Ratio and image padding
     const [imagePadding, setImagePadding] = useState(0);
     const [ratio, setRatio] = useState("4:3"); // default is 4:3
-    const { height, width } = dimensions;
     const screenRatio = height / width;
     const [isRatioSet, setIsRatioSet] = useState(false);
 
@@ -55,7 +56,7 @@ export default function PhotoCamera({ setState, setIsCamera }) {
         let desiredRatio = "4:3"; // Start with the system default
         // This issue only affects Android
         if (Platform.OS === "android") {
-            const ratios = await camera.getSupportedRatiosAsync();
+            const ratios = await cameraRef.current.getSupportedRatiosAsync();
 
             // Calculate the width/height of each of the supported camera ratios
             // These width/height are measured in landscape mode
@@ -100,20 +101,32 @@ export default function PhotoCamera({ setState, setIsCamera }) {
         }
     };
 
-    async function takePhoto() {
+    const takePhoto = async () => {
         const options = {
             quality: 1,
             base64: true,
             exif: false,
         };
-        const photo = await camera.takePictureAsync(options);
+        console.log(109, cameraRef.current);
+        const photo = await cameraRef.current.takePictureAsync(options);
+        console.log(111, photo);
         setPhoto(photo.uri);
-    }
+    };
     ///////////////////////////////////////////////////////////
     const prepareRatio2 = async () => {
-        console.log(114, camera);
-        const ratios = await camera.getSupportedRatiosAsync();
-        console.log(115, ratios);
+        console.log(114, cameraRef.current);
+        const ratios = await cameraRef.current.getSupportedRatiosAsync();
+        const ratios2 = await cameraRef.current.getAvailablePictureSizesAsync(
+            "11:9"
+        );
+        console.log(
+            115,
+            ratio,
+            photo,
+            ratios2,
+            height,
+            (dimensions.width / 9) * 16
+        );
     };
 
     function noPhoto() {
@@ -183,10 +196,10 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                         />
                     </View>
                 ) : (
-                    <>
+                    <View style={styles.container}>
                         <Image
                             style={styles.preview}
-                            // width={dimensions.width}
+                            width={width}
                             // height={(dimensions.width / 3) * 4}
                             source={{
                                 uri: photo,
@@ -248,54 +261,57 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                                 />
                             </TouchableOpacity>
                         </View>
-                    </>
+                    </View>
                 )}
             </SafeAreaView>
         );
     }
 
     return (
-        <Camera
-            // width={dimensions.width}
-            // height={(dimensions.width / 9) * 16}
-            type={type}
-            onCameraReady={setCameraReady}
-            style={[
-                styles.camera,
-                { marginTop: imagePadding, marginBottom: imagePadding },
-            ]}
-            // ref={cameraRef}
-            ref={(ref) => {
-                setCamera(ref);
-            }}
-            ratio={ratio}
-        >
-            <TouchableOpacity
-                onPress={noPhoto}
-                style={{
-                    ...styles.noPhoto,
-                    left: 25,
-                }}
+        <View style={styles.container}>
+            <Camera
+                width={width}
+                height={(width / 9) * 16}
+                type={type}
+                onCameraReady={setCameraReady}
+                style={styles.camera}
+                ref={cameraRef}
+                // ref={(ref) => {
+                //     setCamera(ref);
+                // }}
+                ratio={ratio}
             >
-                <MaterialIcons name="no-photography" size={20} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={takePhoto} style={styles.circleIcon}>
-                <FontAwesome name="circle" size={35} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-                onPress={toggleCameraType}
-                style={{
-                    ...styles.noPhoto,
-                    right: 25,
-                }}
-            >
-                <MaterialIcons
-                    name="flip-camera-android"
-                    size={20}
-                    color="white"
-                />
-            </TouchableOpacity>
-        </Camera>
+                <TouchableOpacity
+                    onPress={noPhoto}
+                    style={{
+                        ...styles.noPhoto,
+                        left: 25,
+                    }}
+                >
+                    <MaterialIcons
+                        name="no-photography"
+                        size={20}
+                        color="white"
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={takePhoto} style={styles.circleIcon}>
+                    <FontAwesome name="circle" size={35} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={toggleCameraType}
+                    style={{
+                        ...styles.noPhoto,
+                        right: 25,
+                    }}
+                >
+                    <MaterialIcons
+                        name="flip-camera-android"
+                        size={20}
+                        color="white"
+                    />
+                </TouchableOpacity>
+            </Camera>
+        </View>
     );
 }
 
@@ -306,9 +322,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     camera: {
-        flex: 1,
-        // width: 300,
-        // height: 200,
+        // flex: 1,
         justifyContent: "flex-end",
         alignItems: "center",
     },
@@ -336,8 +350,8 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     preview: {
-        flex: 1,
-        alignSelf: "stretch",
+        // flex: 1,
+        // alignSelf: "stretch",
     },
     previewIcons: {
         position: "absolute",
