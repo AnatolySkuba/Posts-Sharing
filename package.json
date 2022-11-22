@@ -6,7 +6,8 @@
         "start": "expo start",
         "android": "expo start --android",
         "ios": "expo start --ios",
-        "web": "expo start --web"
+        "web": "expo start --web",
+        "s": "git add . && git commit -m save-my-progress && git push"
     },
     "dependencies": {
         "@expo/dev-tools": "^0.13.171",
