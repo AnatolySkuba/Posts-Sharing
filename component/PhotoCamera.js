@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Camera, CameraType } from "expo-camera";
 import { shareAsync } from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
@@ -11,12 +11,17 @@ import {
     Button,
     SafeAreaView,
     StyleSheet,
+    Platform,
 } from "react-native";
 
 import { useDimensions } from "../hooks/Dimensions";
 
 export default function PhotoCamera({ setState, setIsCamera }) {
-    const cameraRef = useRef();
+    let cameraRef = useRef();
+    const [hasCameraPermission, setHasCameraPermission] = useState();
+    const [hasMediaLibraryPermission, setHasMediaLibraryPermission] =
+        useState();
+    const [camera, setCamera] = useState(null);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [permissionResponse] = MediaLibrary.usePermissions();
     const [type, setType] = useState(CameraType.back);
@@ -24,22 +29,104 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const [isSavePhoto, setIsSavePhoto] = useState();
     const { dimensions } = useDimensions();
 
-    if (!permission) {
-        // Camera permissions are still loading
-        return <View />;
-    }
+    // Screen Ratio and image padding
+    const [imagePadding, setImagePadding] = useState(0);
+    const [ratio, setRatio] = useState("4:3"); // default is 4:3
+    const { height, width } = dimensions;
+    const screenRatio = height / width;
+    const [isRatioSet, setIsRatioSet] = useState(false);
 
-    if (!permission.granted) {
-        // Camera permissions are not granted yet
+    useEffect(() => {
+        (async () => {
+            const cameraPermission =
+                await Camera.requestCameraPermissionsAsync();
+            const mediaLibraryPermission =
+                await MediaLibrary.requestPermissionsAsync();
+            setHasCameraPermission(cameraPermission.status === "granted");
+            setHasMediaLibraryPermission(
+                mediaLibraryPermission.status === "granted"
+            );
+        })();
+    }, []);
+
+    if (hasCameraPermission === undefined) {
+        return <Text>Requesting permissions...</Text>;
+    } else if (!hasCameraPermission) {
         return (
-            <View style={styles.container}>
-                <Text style={{ textAlign: "center" }}>
-                    We need your permission to show the camera
-                </Text>
-                <Button onPress={requestPermission} title="grant permission" />
-            </View>
+            <Text>
+                Permission for camera not granted. Please change this in
+                settings.
+            </Text>
         );
     }
+
+    // if (!permission) {
+    //     // Camera permissions are still loading
+    //     return <View />;
+    // }
+
+    // if (!permission.granted) {
+    //     // Camera permissions are not granted yet
+    //     return (
+    //         <View style={styles.container}>
+    //             <Text style={{ textAlign: "center" }}>
+    //                 We need your permission to show the camera
+    //             </Text>
+    //             <Button onPress={requestPermission} title="grant permission" />
+    //         </View>
+    //     );
+    // }
+
+    // set the camera ratio and padding.
+    // this code assumes a portrait mode screen
+    const prepareRatio = async () => {
+        let desiredRatio = "4:3"; // Start with the system default
+        // This issue only affects Android
+        if (Platform.OS === "android") {
+            const ratios = await camera.getSupportedRatiosAsync();
+
+            // Calculate the width/height of each of the supported camera ratios
+            // These width/height are measured in landscape mode
+            // find the ratio that is closest to the screen ratio without going over
+            let distances = {};
+            let realRatios = {};
+            let minDistance = null;
+            for (const ratio of ratios) {
+                const parts = ratio.split(":");
+                const realRatio = parseInt(parts[0]) / parseInt(parts[1]);
+                realRatios[ratio] = realRatio;
+                // ratio can't be taller than screen, so we don't want an abs()
+                const distance = screenRatio - realRatio;
+                distances[ratio] = realRatio;
+                if (minDistance == null) {
+                    minDistance = ratio;
+                } else {
+                    if (distance >= 0 && distance < distances[minDistance]) {
+                        minDistance = ratio;
+                    }
+                }
+            }
+            // set the best match
+            desiredRatio = minDistance;
+            //  calculate the difference between the camera width and the screen height
+            const remainder = Math.floor(
+                (height - realRatios[desiredRatio] * width) / 2
+            );
+            // set the preview padding and preview ratio
+            setImagePadding(remainder);
+            setRatio(desiredRatio);
+            // Set a flag so we don't do this
+            // calculation each time the screen refreshes
+            setIsRatioSet(true);
+        }
+    };
+
+    // the camera must be loaded in order to access the supported ratios
+    const setCameraReady = async () => {
+        if (!isRatioSet) {
+            await prepareRatio();
+        }
+    };
 
     async function takePhoto() {
         const options = {
@@ -47,13 +134,23 @@ export default function PhotoCamera({ setState, setIsCamera }) {
             base64: true,
             exif: false,
         };
-        const photo = await cameraRef.current.takePictureAsync(options);
+        const photo = await camera.takePictureAsync(options);
         setPhoto(photo.uri);
     }
+    ///////////////////////////////////////////////////////////
+    const prepareRatio2 = async () => {
+        console.log(114, camera);
+        const ratios = await camera.getSupportedRatiosAsync();
+        console.log(115);
+    };
 
     function noPhoto() {
-        setPhoto(undefined);
-        setIsCamera(false);
+        console.log(119);
+        if (Platform.OS === "android") {
+            prepareRatio2();
+        }
+        // setPhoto(undefined);
+        // setIsCamera(false);
     }
 
     function toggleCameraType() {
@@ -193,9 +290,16 @@ export default function PhotoCamera({ setState, setIsCamera }) {
             // width={dimensions.width}
             // height={(dimensions.width / 9) * 16}
             type={type}
-            style={styles.camera}
+            onCameraReady={setCameraReady}
+            style={[
+                styles.camera,
+                { marginTop: imagePadding, marginBottom: imagePadding },
+            ]}
             ref={cameraRef}
-            ratio="16:9"
+            // ref={(ref) => {
+            //     setCamera(ref);
+            // }}
+            ratio={ratio}
         >
             <TouchableOpacity
                 onPress={noPhoto}
