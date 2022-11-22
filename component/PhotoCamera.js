@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Camera, CameraType } from "expo-camera";
 import { shareAsync } from "expo-sharing";
 import * as MediaLibrary from "expo-media-library";
@@ -17,10 +17,6 @@ import {
 import { useDimensions } from "../hooks/Dimensions";
 
 export default function PhotoCamera({ setState, setIsCamera }) {
-    let cameraRef = useRef();
-    const [hasCameraPermission, setHasCameraPermission] = useState();
-    const [hasMediaLibraryPermission, setHasMediaLibraryPermission] =
-        useState();
     const [camera, setCamera] = useState(null);
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [permissionResponse] = MediaLibrary.usePermissions();
@@ -36,46 +32,22 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const screenRatio = height / width;
     const [isRatioSet, setIsRatioSet] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            const cameraPermission =
-                await Camera.requestCameraPermissionsAsync();
-            const mediaLibraryPermission =
-                await MediaLibrary.requestPermissionsAsync();
-            setHasCameraPermission(cameraPermission.status === "granted");
-            setHasMediaLibraryPermission(
-                mediaLibraryPermission.status === "granted"
-            );
-        })();
-    }, []);
-
-    if (hasCameraPermission === undefined) {
-        return <Text>Requesting permissions...</Text>;
-    } else if (!hasCameraPermission) {
-        return (
-            <Text>
-                Permission for camera not granted. Please change this in
-                settings.
-            </Text>
-        );
+    if (!permission) {
+        // Camera permissions are still loading
+        return <View />;
     }
 
-    // if (!permission) {
-    //     // Camera permissions are still loading
-    //     return <View />;
-    // }
-
-    // if (!permission.granted) {
-    //     // Camera permissions are not granted yet
-    //     return (
-    //         <View style={styles.container}>
-    //             <Text style={{ textAlign: "center" }}>
-    //                 We need your permission to show the camera
-    //             </Text>
-    //             <Button onPress={requestPermission} title="grant permission" />
-    //         </View>
-    //     );
-    // }
+    if (!permission.granted) {
+        // Camera permissions are not granted yet
+        return (
+            <View style={styles.container}>
+                <Text style={{ textAlign: "center" }}>
+                    We need your permission to show the camera
+                </Text>
+                <Button onPress={requestPermission} title="grant permission" />
+            </View>
+        );
+    }
 
     // set the camera ratio and padding.
     // this code assumes a portrait mode screen
@@ -141,14 +113,11 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const prepareRatio2 = async () => {
         console.log(114, camera);
         const ratios = await camera.getSupportedRatiosAsync();
-        console.log(115);
+        console.log(115, ratios);
     };
 
     function noPhoto() {
-        console.log(119);
-        if (Platform.OS === "android") {
-            prepareRatio2();
-        }
+        prepareRatio2();
         // setPhoto(undefined);
         // setIsCamera(false);
     }
@@ -295,10 +264,10 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                 styles.camera,
                 { marginTop: imagePadding, marginBottom: imagePadding },
             ]}
-            ref={cameraRef}
-            // ref={(ref) => {
-            //     setCamera(ref);
-            // }}
+            // ref={cameraRef}
+            ref={(ref) => {
+                setCamera(ref);
+            }}
             ratio={ratio}
         >
             <TouchableOpacity
