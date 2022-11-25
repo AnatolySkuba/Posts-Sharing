@@ -10,11 +10,11 @@ import {
     Keyboard,
     StyleSheet,
 } from "react-native";
-import { Camera, CameraType } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 
 import { useDimensions } from "../../hooks/Dimensions";
 import PhotoCamera from "../../component/PhotoCamera";
+import ImageUpload from "../../component/ImageUpload";
 import Svg, { Path } from "react-native-svg";
 
 const initialState = {
@@ -66,14 +66,6 @@ export default function CreatePostsScreen({ navigation }) {
         Keyboard.dismiss();
     };
 
-    // const [type, setType] = useState(CameraType.back);
-
-    // function toggleCameraType() {
-    //     setType((current) =>
-    //         current === CameraType.back ? CameraType.front : CameraType.back
-    //     );
-    // }
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -104,18 +96,12 @@ export default function CreatePostsScreen({ navigation }) {
                             <View style={styles.container}>
                                 <View style={styles.photo}>
                                     {state.photo && (
-                                        <View style={styles.photoContainer}>
-                                            <Image
-                                                // source={{ uri: photo.uri }}
-                                                source={{
-                                                    uri: state.photo,
-                                                }}
-                                                style={{
-                                                    width: 200,
-                                                    height: 200,
-                                                }}
-                                            />
-                                        </View>
+                                        <Image
+                                            source={{
+                                                uri: state.photo,
+                                            }}
+                                            style={styles.preview}
+                                        />
                                     )}
                                     <TouchableOpacity
                                         onPress={() => setIsCamera(true)}
@@ -137,14 +123,15 @@ export default function CreatePostsScreen({ navigation }) {
                                         </Svg>
                                     </TouchableOpacity>
                                 </View>
-                                <TouchableOpacity
+                                <ImageUpload setState={setState} />
+                                {/* <TouchableOpacity
                                     onPress={() => console.log(dimensions)}
                                     style={styles.uploadPhoto}
                                 >
                                     <Text style={styles.uploadPhotoText}>
                                         Upload photo
                                     </Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <TextInput
                                     value={state.name}
                                     onChangeText={(value) =>
@@ -199,13 +186,13 @@ export default function CreatePostsScreen({ navigation }) {
                                 <TouchableOpacity
                                     activeOpacity={0.8}
                                     style={styles.btn}
-                                    onPress={() => console.log(isCamera)}
+                                    onPress={() => console.log(state)}
                                 >
                                     <Text style={styles.btnTitle}>Publish</Text>
                                 </TouchableOpacity>
                                 {!isShowKeyboard && (
                                     <TouchableOpacity
-                                        onPress={() => console.log(dimensions)}
+                                        onPress={() => setState(initialState)}
                                         style={{
                                             ...styles.trash,
                                             left: dimensions.width / 2 - 35,
@@ -255,16 +242,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#F6F6F6",
         justifyContent: "center",
         alignItems: "center",
-    },
-    photoContainer: {
-        position: "absolute",
-    },
-    camera: {
-        // flex: 1,
-        // width: 300,
-        // height: 200,
-        justifyContent: "flex-end",
-        alignItems: "center",
+        objectFit: "cover",
     },
     photoIcon: {
         position: "absolute",
@@ -275,20 +253,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    circleIcon: {
-        height: 60,
-        width: 60,
-        marginBottom: 20,
-        borderRadius: 30,
-        backgroundColor: "transparent",
-        justifyContent: "center",
-        alignItems: "center",
-        borderColor: "#fff",
-        borderWidth: 2,
-    },
+    // photoContainer: {
+    // position: "absolute",
+    // },
     preview: {
-        alignSelf: "stretch",
-        flex: 1,
+        width: "100%",
+        height: "100%",
     },
     uploadPhoto: {
         marginTop: 8,

@@ -17,8 +17,7 @@ import {
 import { useDimensions } from "../hooks/Dimensions";
 
 export default function PhotoCamera({ setState, setIsCamera }) {
-    let cameraRef = useRef();
-    const [camera, setCamera] = useState(null);
+    const cameraRef = useRef();
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const [permissionResponse] = MediaLibrary.usePermissions();
     const [type, setType] = useState(CameraType.back);
@@ -28,7 +27,6 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const { height, width } = dimensions;
 
     // Screen Ratio and image padding
-    const [imagePadding, setImagePadding] = useState(0);
     const [ratio, setRatio] = useState("4:3"); // default is 4:3
     const screenRatio = height / width;
     const [isRatioSet, setIsRatioSet] = useState(false);
@@ -53,7 +51,6 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     // set the camera ratio and padding.
     // this code assumes a portrait mode screen
     const prepareRatio = async () => {
-        let desiredRatio = "4:3"; // Start with the system default
         // This issue only affects Android
         if (Platform.OS === "android") {
             const ratios = await cameraRef.current.getSupportedRatiosAsync();
@@ -80,14 +77,7 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                 }
             }
             // set the best match
-            desiredRatio = minDistance;
-            //  calculate the difference between the camera width and the screen height
-            const remainder = Math.floor(
-                (height - realRatios[desiredRatio] * width) / 2
-            );
-            // set the preview padding and preview ratio
-            setImagePadding(remainder);
-            setRatio(desiredRatio);
+            setRatio(minDistance);
             // Set a flag so we don't do this
             // calculation each time the screen refreshes
             setIsRatioSet(true);
@@ -102,37 +92,13 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     };
 
     const takePhoto = async () => {
-        const options = {
-            quality: 1,
-            base64: true,
-            exif: false,
-        };
-        console.log(109, cameraRef.current);
-        const photo = await cameraRef.current.takePictureAsync(options);
-        console.log(111, photo);
+        const photo = await cameraRef.current.takePictureAsync();
         setPhoto(photo.uri);
-    };
-    ///////////////////////////////////////////////////////////
-    const prepareRatio2 = async () => {
-        console.log(114, cameraRef.current);
-        const ratios = await cameraRef.current.getSupportedRatiosAsync();
-        const ratios2 = await cameraRef.current.getAvailablePictureSizesAsync(
-            "11:9"
-        );
-        console.log(
-            115,
-            ratio,
-            photo,
-            ratios2,
-            height,
-            (dimensions.width / 9) * 16
-        );
     };
 
     function noPhoto() {
-        prepareRatio2();
-        // setPhoto(undefined);
-        // setIsCamera(false);
+        setPhoto(undefined);
+        setIsCamera(false);
     }
 
     function toggleCameraType() {
@@ -197,14 +163,19 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                     </View>
                 ) : (
                     <View style={styles.container}>
-                        <Image
-                            style={styles.preview}
-                            width={width}
-                            // height={(dimensions.width / 3) * 4}
-                            source={{
-                                uri: photo,
+                        <View
+                            style={{
+                                width: width,
+                                height: (width / 9) * 16,
                             }}
-                        />
+                        >
+                            <Image
+                                style={styles.preview}
+                                source={{
+                                    uri: photo,
+                                }}
+                            />
+                        </View>
                         <View style={styles.previewIcons}>
                             <TouchableOpacity
                                 onPress={noPhoto}
@@ -276,9 +247,6 @@ export default function PhotoCamera({ setState, setIsCamera }) {
                 onCameraReady={setCameraReady}
                 style={styles.camera}
                 ref={cameraRef}
-                // ref={(ref) => {
-                //     setCamera(ref);
-                // }}
                 ratio={ratio}
             >
                 <TouchableOpacity
@@ -322,7 +290,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     camera: {
-        // flex: 1,
         justifyContent: "flex-end",
         alignItems: "center",
     },
@@ -349,14 +316,11 @@ const styles = StyleSheet.create({
         borderColor: "#fff",
         borderWidth: 2,
     },
-    preview: {
-        // flex: 1,
-        // alignSelf: "stretch",
-    },
+    preview: { flex: 1 },
     previewIcons: {
         position: "absolute",
         backgroundColor: "transparent",
-        bottom: 20,
+        bottom: 88,
         flexDirection: "row",
         justifyContent: "space-evenly",
         alignItems: "center",
