@@ -15,6 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import { useDimensions } from "../../hooks/Dimensions";
 import PhotoCamera from "../../component/PhotoCamera";
 import ImageUpload from "../../component/ImageUpload";
+import Locality from "../../component/Location";
 import Svg, { Path } from "react-native-svg";
 
 const initialState = {
@@ -124,14 +125,6 @@ export default function CreatePostsScreen({ navigation }) {
                                     </TouchableOpacity>
                                 </View>
                                 <ImageUpload setState={setState} />
-                                {/* <TouchableOpacity
-                                    onPress={() => console.log(dimensions)}
-                                    style={styles.uploadPhoto}
-                                >
-                                    <Text style={styles.uploadPhotoText}>
-                                        Upload photo
-                                    </Text>
-                                </TouchableOpacity> */}
                                 <TextInput
                                     value={state.name}
                                     onChangeText={(value) =>
@@ -171,7 +164,8 @@ export default function CreatePostsScreen({ navigation }) {
                                             : "#E8E8E8",
                                     }}
                                 />
-                                <TouchableOpacity
+                                <Locality setState={setState} />
+                                {/* <TouchableOpacity
                                     onPress={() =>
                                         console.log("locality", state.photo)
                                     }
@@ -182,7 +176,7 @@ export default function CreatePostsScreen({ navigation }) {
                                         color="rgba(189, 189, 189, 1)"
                                         style={styles.locality}
                                     />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <TouchableOpacity
                                     activeOpacity={0.8}
                                     style={styles.btn}
@@ -260,17 +254,6 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
     },
-    uploadPhoto: {
-        marginTop: 8,
-        marginBottom: 33,
-    },
-    uploadPhotoText: {
-        fontFamily: "Roboto-Regular",
-        fontWeight: "400",
-        fontSize: 16,
-        lineHeight: 19,
-        color: "#BDBDBD",
-    },
     input: {
         marginBottom: 16,
         paddingVertical: 15,
@@ -282,7 +265,6 @@ const styles = StyleSheet.create({
         lineHeight: 19,
         color: "#212121",
     },
-    locality: { position: "absolute", top: -55 },
     btn: {
         marginTop: 25,
         paddingVertical: 16,

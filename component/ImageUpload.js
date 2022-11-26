@@ -1,31 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View, TouchableOpacity, Text, Button, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 export default function ImageUpload({ setState }) {
-    const [status, requestPermission] =
-        ImagePicker.useMediaLibraryPermissions();
-    const [image, setImage] = useState(null);
+    // const [status, requestPermission] =
+    //     ImagePicker.useMediaLibraryPermissions();
 
-    if (!status) {
-        // Camera permissions are still loading
-        return <View />;
-    }
+    // if (!status) {
+    //     // Media library permissions are still loading
+    //     return <View />;
+    // }
 
-    if (!status.granted) {
-        // Camera permissions are not granted yet
-        return (
-            <View style={styles.container}>
-                <Text style={{ textAlign: "center" }}>
-                    We need your permission to show the media library
-                </Text>
-                <Button onPress={requestPermission} title="grant permission" />
-            </View>
-        );
-    }
+    // if (!status.granted) {
+    //     // Media library permissions are not granted yet
+    //     return (
+    //         <View style={styles.container}>
+    //             <Text style={{ textAlign: "center" }}>
+    //                 We need your permission to show the media library
+    //             </Text>
+    //             <Button onPress={requestPermission} title="grant permission" />
+    //         </View>
+    //     );
+    // }
 
-    const pickImage = async () => {
-        console.log(11, status);
+    async function pickImage() {
+        const { status } =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (status !== "granted") {
+            Alert.alert("Permission show the media library was denied");
+        }
+
         // No permissions request is necessary for launching the image library
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -34,8 +39,6 @@ export default function ImageUpload({ setState }) {
             quality: 1,
         });
 
-        console.log(20, status, result);
-
         if (!result.canceled) {
             // setImage(result.assets[0].uri);
             setState((prevState) => ({
@@ -43,26 +46,12 @@ export default function ImageUpload({ setState }) {
                 photo: result.assets[0].uri,
             }));
         }
-    };
+    }
 
     return (
         <TouchableOpacity onPress={pickImage} style={styles.uploadPhoto}>
             <Text style={styles.uploadPhotoText}>Upload photo</Text>
         </TouchableOpacity>
-        // <View
-        //     style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        // >
-        //     <Button
-        //         title="Pick an image from camera roll"
-        //         onPress={pickImage}
-        //     />
-        //     {image && (
-        //         <Image
-        //             source={{ uri: image }}
-        //             style={{ width: 200, height: 200 }}
-        //         />
-        //     )}
-        // </View>
     );
 }
 
