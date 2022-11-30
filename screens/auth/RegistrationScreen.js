@@ -3,7 +3,6 @@ import {
     StyleSheet,
     View,
     Image,
-    Button,
     Text,
     TextInput,
     TouchableOpacity,
@@ -12,15 +11,17 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Dimensions,
-    Alert,
 } from "react-native";
+import { useDispatch } from "react-redux";
 import { Camera, CameraType } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 
+import { authSignUpUser } from "../../redux/auth/authOperations";
+
 const initialState = {
-    login: "",
-    email: "",
-    password: "",
+    login: null,
+    email: null,
+    password: null,
 };
 
 export default function RegistrationScreen({ navigation: { navigate } }) {
@@ -38,11 +39,12 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
         email: false,
         password: false,
     });
+    const dispatch = useDispatch();
 
     const takePhoto = async () => {
         const photo = await camera.takePictureAsync();
         setPhoto(photo.uri);
-        console.log(456, photo.uri);
+        console.log(49, photo.uri);
     };
 
     const handleInputFocus = (textinput) => {
@@ -64,8 +66,7 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
     };
 
     const onRegister = () => {
-        // Alert.alert("Credentials", `${state.login} + ${state.password}`);
-        console.log(68, photo);
+        authSignUpUser(dispatch, state);
         setState(initialState);
     };
 
@@ -90,7 +91,7 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
         };
     }, []);
 
-    console.log(2, isShowKeyboard, dimensions.width);
+    console.log(98, isShowKeyboard, dimensions.width);
 
     const [type, setType] = useState(CameraType.back);
     const [permission, requestPermission] = Camera.useCameraPermissions();
@@ -111,12 +112,6 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
     //         </View>
     //     );
     // }
-
-    function toggleCameraType() {
-        setType((current) =>
-            current === CameraType.back ? CameraType.front : CameraType.back
-        );
-    }
 
     return (
         <KeyboardAvoidingView

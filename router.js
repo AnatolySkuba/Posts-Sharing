@@ -17,11 +17,11 @@ export const useRoute = (isAuth) => {
     if (!isAuth) {
         return (
             <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+                <AuthStack.Screen name="Login" component={LoginScreen} />
                 <AuthStack.Screen
                     name="Registration"
                     component={RegistrationScreen}
                 />
-                <AuthStack.Screen name="Login" component={LoginScreen} />
             </AuthStack.Navigator>
         );
     }
@@ -46,17 +46,6 @@ export const useRoute = (isAuth) => {
                 },
             }}
         >
-            <MainTab.Group screenOptions={{ tabBarStyle: { height: 0 } }}>
-                <MainTab.Screen
-                    name="Create"
-                    component={CreatePostsScreen}
-                    options={{
-                        tabBarIcon: ({ size, color }) => (
-                            <Feather name="plus" size={size} color={color} />
-                        ),
-                    }}
-                />
-            </MainTab.Group>
             <MainTab.Group screenOptions={{ tabBarStyle: { height: 58 } }}>
                 <MainTab.Screen
                     name="Posts"
@@ -68,7 +57,7 @@ export const useRoute = (isAuth) => {
                     }}
                 />
             </MainTab.Group>
-            {/* <MainTab.Group screenOptions={{ tabBarStyle: { height: 0 } }}>
+            <MainTab.Group screenOptions={{ tabBarStyle: { height: 0 } }}>
                 <MainTab.Screen
                     name="Create"
                     component={CreatePostsScreen}
@@ -78,7 +67,7 @@ export const useRoute = (isAuth) => {
                         ),
                     }}
                 />
-            </MainTab.Group> */}
+            </MainTab.Group>
             <MainTab.Group screenOptions={{ tabBarStyle: { height: 58 } }}>
                 <MainTab.Screen
                     name="Profile"

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
+    Alert,
+    Linking,
     TouchableOpacity,
     Image,
     TouchableWithoutFeedback,
@@ -10,13 +12,17 @@ import {
     Keyboard,
     StyleSheet,
 } from "react-native";
+import { useSelector } from "react-redux";
+import { collection, addDoc } from "firebase/firestore";
+import { Camera } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
 
 import { useDimensions } from "../../hooks/Dimensions";
 import PhotoCamera from "../../component/PhotoCamera";
 import ImageUpload from "../../component/ImageUpload";
+import { firebase, db } from "../../firebase/config";
 import Locality from "../../component/Location";
-import Svg, { Path } from "react-native-svg";
 
 const initialState = {
     name: "",
@@ -26,6 +32,7 @@ const initialState = {
 
 export default function CreatePostsScreen({ navigation }) {
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
+    const { userId, login } = useSelector((state) => state.auth);
     const [state, setState] = useState(initialState);
     const [isCamera, setIsCamera] = useState(false);
     const { dimensions } = useDimensions();
@@ -49,16 +56,16 @@ export default function CreatePostsScreen({ navigation }) {
         };
     }, []);
 
-    const handleInputFocus = (textinput) => {
+    const handleInputFocus = (textInput) => {
         setIsFocused({
-            [textinput]: true,
+            [textInput]: true,
         });
         setIsShowKeyboard(true);
     };
 
-    const handleInputBlur = (textinput) => {
+    const handleInputBlur = (textInput) => {
         setIsFocused({
-            [textinput]: false,
+            [textInput]: false,
         });
     };
 
@@ -66,6 +73,61 @@ export default function CreatePostsScreen({ navigation }) {
         setIsShowKeyboard(false);
         Keyboard.dismiss();
     };
+
+    async function getCamera() {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+
+        if (status !== "granted") {
+            Alert.alert("", "Permission to show the camera was denied", [
+                {
+                    text: "App info",
+                    onPress: () => Linking.openSettings(),
+                },
+                {
+                    text: "Ok",
+                },
+            ]);
+            return;
+        }
+
+        setIsCamera(true);
+    }
+
+    async function uploadPhotoToServer() {
+        const response = await fetch(state.photo);
+        const file = await response.blob();
+        const uniquePhotoId = Date.now().toString();
+        await firebase.storage().ref(`postImage/${uniquePhotoId}`).put(file);
+
+        const processedPhoto = await firebase
+            .storage()
+            .ref("postImage")
+            .child(uniquePhotoId)
+            .getDownloadURL();
+
+        return processedPhoto;
+    }
+
+    async function uploadPostToServer() {
+        const photo = await uploadPhotoToServer();
+        try {
+            const createPost = await addDoc(collection(db, "posts"), {
+                userId,
+                userLogin: login,
+                photo,
+                postName: state.name,
+                locality: state.locality,
+            });
+            console.log("Post written with ID: ", createPost.id);
+        } catch (error) {
+            console.error("Error adding post: ", error);
+        }
+    }
+
+    function publish() {
+        uploadPostToServer();
+        navigation.navigate("Posts");
+    }
 
     return (
         <KeyboardAvoidingView
@@ -105,7 +167,7 @@ export default function CreatePostsScreen({ navigation }) {
                                         />
                                     )}
                                     <TouchableOpacity
-                                        onPress={() => setIsCamera(true)}
+                                        onPress={getCamera}
                                         style={styles.photoIcon}
                                     >
                                         <Svg
@@ -165,22 +227,10 @@ export default function CreatePostsScreen({ navigation }) {
                                     }}
                                 />
                                 <Locality setState={setState} />
-                                {/* <TouchableOpacity
-                                    onPress={() =>
-                                        console.log("locality", state.photo)
-                                    }
-                                >
-                                    <Feather
-                                        name="map-pin"
-                                        size={20}
-                                        color="rgba(189, 189, 189, 1)"
-                                        style={styles.locality}
-                                    />
-                                </TouchableOpacity> */}
                                 <TouchableOpacity
                                     activeOpacity={0.8}
                                     style={styles.btn}
-                                    onPress={() => console.log(state)}
+                                    onPress={() => publish()}
                                 >
                                     <Text style={styles.btnTitle}>Publish</Text>
                                 </TouchableOpacity>
@@ -247,12 +297,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    // photoContainer: {
-    // position: "absolute",
-    // },
     preview: {
         width: "100%",
         height: "100%",
+        borderRadius: 8,
     },
     input: {
         marginBottom: 16,

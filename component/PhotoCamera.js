@@ -5,11 +5,10 @@ import * as MediaLibrary from "expo-media-library";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import {
     View,
-    Text,
+    Linking,
     TouchableOpacity,
     Image,
-    Button,
-    SafeAreaView,
+    Alert,
     StyleSheet,
     Platform,
 } from "react-native";
@@ -18,11 +17,8 @@ import { useDimensions } from "../hooks/Dimensions";
 
 export default function PhotoCamera({ setState, setIsCamera }) {
     const cameraRef = useRef();
-    const [permission, requestPermission] = Camera.useCameraPermissions();
-    const [permissionResponse] = MediaLibrary.usePermissions();
     const [type, setType] = useState(CameraType.back);
     const [photo, setPhoto] = useState(null);
-    const [isSavePhoto, setIsSavePhoto] = useState();
     const { dimensions } = useDimensions();
     const { height, width } = dimensions;
 
@@ -31,26 +27,9 @@ export default function PhotoCamera({ setState, setIsCamera }) {
     const screenRatio = height / width;
     const [isRatioSet, setIsRatioSet] = useState(false);
 
-    if (!permission) {
-        // Camera permissions are still loading
-        return <View />;
-    }
-
-    if (!permission.granted) {
-        // Camera permissions are not granted yet
-        return (
-            <View style={styles.container}>
-                <Text style={{ textAlign: "center" }}>
-                    We need your permission to show the camera
-                </Text>
-                <Button onPress={requestPermission} title="grant permission" />
-            </View>
-        );
-    }
-
     // set the camera ratio and padding.
     // this code assumes a portrait mode screen
-    const prepareRatio = async () => {
+    async function prepareRatio() {
         // This issue only affects Android
         if (Platform.OS === "android") {
             const ratios = await cameraRef.current.getSupportedRatiosAsync();
@@ -82,19 +61,19 @@ export default function PhotoCamera({ setState, setIsCamera }) {
             // calculation each time the screen refreshes
             setIsRatioSet(true);
         }
-    };
+    }
 
     // the camera must be loaded in order to access the supported ratios
-    const setCameraReady = async () => {
+    async function setCameraReady() {
         if (!isRatioSet) {
             await prepareRatio();
         }
-    };
+    }
 
-    const takePhoto = async () => {
+    async function takePhoto() {
         const photo = await cameraRef.current.takePictureAsync();
         setPhoto(photo.uri);
-    };
+    }
 
     function noPhoto() {
         setPhoto(undefined);
@@ -132,109 +111,100 @@ export default function PhotoCamera({ setState, setIsCamera }) {
             setPhoto(undefined);
         }
 
-        function savePhoto() {
-            if (permissionResponse?.granted) {
-                setState((prevState) => ({
-                    ...prevState,
-                    photo: photo,
-                }));
-                MediaLibrary.saveToLibraryAsync(photo).then(() => {
-                    setIsCamera(false);
-                    setPhoto(undefined);
-                });
-            } else {
-                setIsSavePhoto(true);
+        async function savePhoto() {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+
+            if (status !== "granted") {
+                Alert.alert(
+                    "",
+                    "Permission show the media library was denied",
+                    [
+                        {
+                            text: "App info",
+                            onPress: () => Linking.openSettings(),
+                        },
+                        {
+                            text: "Ok",
+                        },
+                    ]
+                );
+                return;
             }
+
+            setState((prevState) => ({
+                ...prevState,
+                photo: photo,
+            }));
+            MediaLibrary.saveToLibraryAsync(photo).then(() => {
+                setIsCamera(false);
+                setPhoto(undefined);
+            });
         }
 
         return (
-            <SafeAreaView style={styles.containerScreen}>
-                {isSavePhoto ? (
-                    <View style={styles.container}>
-                        <Text style={{ textAlign: "center" }}>
-                            We need your permission to save the photo
-                        </Text>
-                        <Button
-                            onPress={
-                                MediaLibrary.usePermissions().requestPermission
-                            }
-                            title="grant permission"
+            <View style={styles.container}>
+                <View
+                    style={{
+                        width: width,
+                        height: (width / 9) * 16,
+                    }}
+                >
+                    <Image
+                        style={styles.preview}
+                        source={{
+                            uri: photo,
+                        }}
+                    />
+                </View>
+                <View style={styles.previewIcons}>
+                    <TouchableOpacity
+                        onPress={noPhoto}
+                        style={styles.previewIcon}
+                    >
+                        <MaterialIcons
+                            name="no-photography"
+                            size={20}
+                            color="white"
                         />
-                    </View>
-                ) : (
-                    <View style={styles.container}>
-                        <View
-                            style={{
-                                width: width,
-                                height: (width / 9) * 16,
-                            }}
-                        >
-                            <Image
-                                style={styles.preview}
-                                source={{
-                                    uri: photo,
-                                }}
-                            />
-                        </View>
-                        <View style={styles.previewIcons}>
-                            <TouchableOpacity
-                                onPress={noPhoto}
-                                style={styles.previewIcon}
-                            >
-                                <MaterialIcons
-                                    name="no-photography"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={otherPhoto}
-                                style={styles.previewIcon}
-                            >
-                                <MaterialIcons
-                                    name="flip-camera-ios"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={selectPhoto}
-                                style={{
-                                    ...styles.previewIcon,
-                                    height: 60,
-                                    width: 60,
-                                }}
-                            >
-                                <MaterialIcons
-                                    name="save-alt"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={sharePhoto}
-                                style={styles.previewIcon}
-                            >
-                                <MaterialIcons
-                                    name="share"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={savePhoto}
-                                style={styles.previewIcon}
-                            >
-                                <MaterialIcons
-                                    name="save"
-                                    size={20}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )}
-            </SafeAreaView>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={otherPhoto}
+                        style={styles.previewIcon}
+                    >
+                        <MaterialIcons
+                            name="flip-camera-ios"
+                            size={20}
+                            color="white"
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={selectPhoto}
+                        style={{
+                            ...styles.previewIcon,
+                            height: 60,
+                            width: 60,
+                        }}
+                    >
+                        <MaterialIcons
+                            name="save-alt"
+                            size={20}
+                            color="white"
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={sharePhoto}
+                        style={styles.previewIcon}
+                    >
+                        <MaterialIcons name="share" size={20} color="white" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={savePhoto}
+                        style={styles.previewIcon}
+                    >
+                        <MaterialIcons name="save" size={20} color="white" />
+                    </TouchableOpacity>
+                </View>
+            </View>
         );
     }
 
@@ -284,7 +254,6 @@ export default function PhotoCamera({ setState, setIsCamera }) {
 }
 
 const styles = StyleSheet.create({
-    containerScreen: { flex: 1 },
     container: {
         flex: 1,
         justifyContent: "center",

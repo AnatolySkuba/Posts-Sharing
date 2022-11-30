@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, Alert, Linking, StyleSheet } from "react-native";
 import * as Location from "expo-location";
 import { Feather } from "@expo/vector-icons";
 
@@ -8,7 +8,16 @@ export default function Locality({ setState }) {
         const { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== "granted") {
-            Alert.alert("Permission to access location was denied");
+            Alert.alert("", "Permission to access location was denied", [
+                {
+                    text: "App info",
+                    onPress: () => Linking.openSettings(),
+                },
+                {
+                    text: "Ok",
+                },
+            ]);
+            return;
         }
 
         const location = await Location.getCurrentPositionAsync();

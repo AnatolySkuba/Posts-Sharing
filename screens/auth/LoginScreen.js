@@ -17,10 +17,11 @@ import {
 } from "react-native";
 
 import AuthTextInput from "../../hooks/AuthTextInput";
+import { authSignInUser } from "../../redux/auth/authOperations";
 
 const initialState = {
-    email: "",
-    password: "",
+    email: null,
+    password: null,
 };
 
 export default function ({ navigation }) {
@@ -38,7 +39,7 @@ export default function ({ navigation }) {
     };
 
     const onLogin = () => {
-        Alert.alert("Credentials", `${state.email} + ${state.password}`);
+        authSignInUser(state);
         setState(initialState);
     };
 

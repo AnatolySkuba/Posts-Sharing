@@ -1,15 +1,14 @@
 import React, { useEffect, useCallback } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { Provider } from "react-redux";
 import { View, StyleSheet } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
-import { useRoute } from "./router";
+import Main from "./component/Main";
+import { store } from "./redux/store";
 import { AppDimensions } from "./hooks/Dimensions";
 
 export default function App() {
-    const routing = useRoute(true);
-
     const [fontsLoaded] = useFonts({
         "Roboto-Bold": require("./assets/fonts/Roboto-Bold.ttf"),
         "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
@@ -37,7 +36,9 @@ export default function App() {
     return (
         <View style={styles.container} onLayout={onLayoutRootView}>
             <AppDimensions>
-                <NavigationContainer>{routing}</NavigationContainer>
+                <Provider store={store}>
+                    <Main />
+                </Provider>
             </AppDimensions>
         </View>
     );
