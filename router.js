@@ -11,7 +11,6 @@ import LoginScreen from "./screens/auth/LoginScreen";
 import PostsScreen from "./screens/main/PostsScreen";
 import CreatePostsScreen from "./screens/main/CreatePostsScreen";
 import ProfileScreen from "./screens/main/ProfileScreen";
-// import CommentsScreen from "./screens/CommentsScreen";
 
 export const useRoute = (isAuth) => {
     if (!isAuth) {
@@ -43,42 +42,37 @@ export const useRoute = (isAuth) => {
                 tabBarStyle: {
                     paddingHorizontal: "15%",
                     paddingVertical: 9,
+                    height: 58,
                 },
             }}
         >
-            <MainTab.Group screenOptions={{ tabBarStyle: { height: 58 } }}>
-                <MainTab.Screen
-                    name="Posts"
-                    component={PostsScreen}
-                    options={{
-                        tabBarIcon: ({ size, color }) => (
-                            <Feather name="grid" size={size} color={color} />
-                        ),
-                    }}
-                />
-            </MainTab.Group>
-            <MainTab.Group screenOptions={{ tabBarStyle: { height: 0 } }}>
-                <MainTab.Screen
-                    name="Create"
-                    component={CreatePostsScreen}
-                    options={{
-                        tabBarIcon: ({ size, color }) => (
-                            <Feather name="plus" size={size} color={color} />
-                        ),
-                    }}
-                />
-            </MainTab.Group>
-            <MainTab.Group screenOptions={{ tabBarStyle: { height: 58 } }}>
-                <MainTab.Screen
-                    name="Profile"
-                    component={ProfileScreen}
-                    options={{
-                        tabBarIcon: ({ size, color }) => (
-                            <Feather name="user" size={size} color={color} />
-                        ),
-                    }}
-                />
-            </MainTab.Group>
+            <MainTab.Screen
+                name="Posts"
+                component={PostsScreen}
+                options={{
+                    tabBarIcon: ({ size, color }) => (
+                        <Feather name="grid" size={size} color={color} />
+                    ),
+                }}
+            />
+            <MainTab.Screen
+                name="Create"
+                component={CreatePostsScreen}
+                options={{
+                    tabBarIcon: ({ size, color }) => (
+                        <Feather name="plus" size={size} color={color} />
+                    ),
+                }}
+            />
+            <MainTab.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{
+                    tabBarIcon: ({ size, color }) => (
+                        <Feather name="user" size={size} color={color} />
+                    ),
+                }}
+            />
         </MainTab.Navigator>
     );
 };

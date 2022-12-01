@@ -10,10 +10,7 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Dimensions,
-    SafeAreaView,
-    ScrollView,
     StatusBar,
-    Alert,
 } from "react-native";
 
 import AuthTextInput from "../../hooks/AuthTextInput";

@@ -29,7 +29,11 @@ export default function Locality({ setState }) {
 
         setState((prevState) => ({
             ...prevState,
-            locality: `${address[0].region}, ${address[0].country}`,
+            locality: {
+                name: `${address[0].region}, ${address[0].country}`,
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            },
         }));
     }
 

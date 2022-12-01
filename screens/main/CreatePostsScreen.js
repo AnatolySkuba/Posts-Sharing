@@ -43,6 +43,12 @@ export default function CreatePostsScreen({ navigation }) {
     });
 
     useEffect(() => {
+        navigation.setOptions({
+            tabBarStyle: { height: 0 },
+        });
+    }, [navigation]);
+
+    useEffect(() => {
         const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
             setIsShowKeyboard(true);
         });
@@ -56,23 +62,23 @@ export default function CreatePostsScreen({ navigation }) {
         };
     }, []);
 
-    const handleInputFocus = (textInput) => {
+    function handleInputFocus(textInput) {
         setIsFocused({
             [textInput]: true,
         });
         setIsShowKeyboard(true);
-    };
+    }
 
-    const handleInputBlur = (textInput) => {
+    function handleInputBlur(textInput) {
         setIsFocused({
             [textInput]: false,
         });
-    };
+    }
 
-    const keyboardHide = () => {
+    function keyboardHide() {
         setIsShowKeyboard(false);
         Keyboard.dismiss();
-    };
+    }
 
     async function getCamera() {
         const { status } = await Camera.requestCameraPermissionsAsync();
@@ -126,7 +132,7 @@ export default function CreatePostsScreen({ navigation }) {
 
     function publish() {
         uploadPostToServer();
-        navigation.navigate("Posts");
+        navigation.navigate("DefaultScreen");
     }
 
     return (
@@ -207,11 +213,11 @@ export default function CreatePostsScreen({ navigation }) {
                                     }}
                                 />
                                 <TextInput
-                                    value={state.locality}
+                                    value={state.locality.name}
                                     onChangeText={(value) =>
                                         setState((prevState) => ({
                                             ...prevState,
-                                            locality: value,
+                                            locality: { name: value },
                                         }))
                                     }
                                     placeholder="Locality..."
@@ -229,10 +235,30 @@ export default function CreatePostsScreen({ navigation }) {
                                 <Locality setState={setState} />
                                 <TouchableOpacity
                                     activeOpacity={0.8}
-                                    style={styles.btn}
+                                    style={{
+                                        ...styles.btn,
+                                        backgroundColor:
+                                            state.name &&
+                                            state.locality &&
+                                            state.photo
+                                                ? "#FF6C00"
+                                                : "#F6F6F6",
+                                    }}
                                     onPress={() => publish()}
                                 >
-                                    <Text style={styles.btnTitle}>Publish</Text>
+                                    <Text
+                                        style={{
+                                            ...styles.btnTitle,
+                                            color:
+                                                state.name &&
+                                                state.locality &&
+                                                state.photo
+                                                    ? "#FFF"
+                                                    : "#BDBDBD",
+                                        }}
+                                    >
+                                        Publish
+                                    </Text>
                                 </TouchableOpacity>
                                 {!isShowKeyboard && (
                                     <TouchableOpacity
@@ -317,7 +343,6 @@ const styles = StyleSheet.create({
         marginTop: 25,
         paddingVertical: 16,
         alignItems: "center",
-        backgroundColor: "#FF6C00",
         borderRadius: 100,
     },
     btnTitle: {
@@ -325,7 +350,6 @@ const styles = StyleSheet.create({
         fontWeight: "400",
         fontSize: 16,
         lineHeight: 19,
-        color: "#FFF",
     },
     trash: {
         width: 70,
