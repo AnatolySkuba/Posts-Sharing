@@ -10,29 +10,28 @@ import {
     KeyboardAvoidingView,
     Keyboard,
     TouchableWithoutFeedback,
-    Dimensions,
 } from "react-native";
 import { useDispatch } from "react-redux";
-import { Camera, CameraType } from "expo-camera";
+import { Camera } from "expo-camera";
 import { Feather } from "@expo/vector-icons";
 
+import PhotoCamera from "../../component/PhotoCamera";
+import { firebase } from "../../firebase/config";
+import { useDimensions } from "../../hooks/Dimensions";
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
 const initialState = {
-    login: null,
-    email: null,
-    password: null,
+    login: "",
+    email: "",
+    password: "",
+    photo: "",
 };
 
 export default function RegistrationScreen({ navigation: { navigate } }) {
-    const [dimensions, setDimensions] = useState({
-        width: Dimensions.get("window").width,
-        height: Dimensions.get("window").height,
-    });
+    const { dimensions } = useDimensions();
     const [isShowKeyboard, setIsShowKeyboard] = useState(false);
     const [isShowPassword, setIsShowPassword] = useState(false);
-    const [camera, setCamera] = useState(null);
-    const [photo, setPhoto] = useState(null);
+    const [isCamera, setIsCamera] = useState(false);
     const [state, setState] = useState(initialState);
     const [isFocused, setIsFocused] = useState({
         login: false,
@@ -40,35 +39,6 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
         password: false,
     });
     const dispatch = useDispatch();
-
-    const takePhoto = async () => {
-        const photo = await camera.takePictureAsync();
-        setPhoto(photo.uri);
-        console.log(49, photo.uri);
-    };
-
-    const handleInputFocus = (textinput) => {
-        setIsFocused({
-            [textinput]: true,
-        });
-        setIsShowKeyboard(true);
-    };
-
-    const handleInputBlur = (textinput) => {
-        setIsFocused({
-            [textinput]: false,
-        });
-    };
-
-    const keyboardHide = () => {
-        setIsShowKeyboard(false);
-        Keyboard.dismiss();
-    };
-
-    const onRegister = () => {
-        authSignUpUser(dispatch, state);
-        setState(initialState);
-    };
 
     useEffect(() => {
         const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -78,40 +48,84 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
             setIsShowKeyboard(false);
         });
 
-        const onChange = () => {
-            const { width, height } = Dimensions.get("window");
-            setDimensions({ width, height });
-        };
-        const dimensions = Dimensions.addEventListener("change", onChange);
-
         return () => {
-            dimensions.remove();
             showSubscription.remove();
             hideSubscription.remove();
         };
     }, []);
 
-    console.log(98, isShowKeyboard, dimensions.width);
+    function handleInputFocus(textInput) {
+        setIsFocused({
+            [textInput]: true,
+        });
+        setIsShowKeyboard(true);
+    }
 
-    const [type, setType] = useState(CameraType.back);
-    const [permission, requestPermission] = Camera.useCameraPermissions();
+    function handleInputBlur(textInput) {
+        setIsFocused({
+            [textInput]: false,
+        });
+    }
 
-    // if (!permission) {
-    //     // Camera permissions are still loading
-    //     return <View />;
-    // }
+    function keyboardHide() {
+        setIsShowKeyboard(false);
+        Keyboard.dismiss();
+    }
 
-    // if (!permission.granted) {
-    //     // Camera permissions are not granted yet
-    //     return (
-    //         <View style={styles.container}>
-    //             <Text style={{ textAlign: "center" }}>
-    //                 We need your permission to show the camera
-    //             </Text>
-    //             <Button onPress={requestPermission} title="grant permission" />
-    //         </View>
-    //     );
-    // }
+    async function getCamera() {
+        if (state.photo) {
+            setState((prevState) => ({
+                ...prevState,
+                photo: "",
+            }));
+            return;
+        }
+
+        const { status } = await Camera.requestCameraPermissionsAsync();
+
+        if (status !== "granted") {
+            Alert.alert("", "Permission to show the camera was denied", [
+                {
+                    text: "App info",
+                    onPress: () => Linking.openSettings(),
+                },
+                {
+                    text: "Ok",
+                },
+            ]);
+            return;
+        }
+
+        setIsCamera(true);
+    }
+
+    async function uploadPhotoToServer() {
+        if (state.photo) {
+            const response = await fetch(state.photo);
+            const file = await response.blob();
+            const uniquePhotoId = state.login + Date.now().toString();
+            await firebase
+                .storage()
+                .ref(`userPhoto/${uniquePhotoId}`)
+                .put(file);
+
+            const processedPhoto = await firebase
+                .storage()
+                .ref("userPhoto")
+                .child(uniquePhotoId)
+                .getDownloadURL();
+
+            return processedPhoto;
+        } else {
+            return "";
+        }
+    }
+
+    async function onRegister() {
+        const photo = await uploadPhotoToServer();
+        authSignUpUser(dispatch, state, photo);
+        setState(initialState);
+    }
 
     return (
         <KeyboardAvoidingView
@@ -120,132 +134,158 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
         >
             <TouchableWithoutFeedback onPress={keyboardHide}>
                 <View style={styles.container}>
-                    <Image
-                        source={require("../../assets/images/bg.jpg")}
-                        style={{
-                            ...styles.image,
-                            width: dimensions.width,
-                            height: dimensions.height * 1.07,
-                        }}
-                    />
-                    <View
-                        style={{
-                            ...styles.form,
-                            width: dimensions.width,
-                            bottom: isShowKeyboard ? -190 : -10,
-                        }}
-                    >
-                        <View
-                            style={{
-                                ...styles.cameraContainer,
-                                left: dimensions.width / 2 - 60,
-                            }}
-                        >
-                            <Camera style={styles.camera} ref={setCamera}>
-                                {/* {photo && ( */}
-                                <View style={styles.photoContainer}>
-                                    <Image
-                                        source={{ uri: photo }}
-                                        style={{ width: 100, height: 100 }}
-                                    />
-                                </View>
-                                {/* )} */}
-                                <TouchableOpacity
-                                    onPress={takePhoto}
-                                    style={styles.addPhotoContainer}
+                    {isCamera ? (
+                        <PhotoCamera
+                            setState={setState}
+                            setIsCamera={setIsCamera}
+                        />
+                    ) : (
+                        <>
+                            <Image
+                                source={require("../../assets/images/bg.jpg")}
+                                style={{
+                                    ...styles.image,
+                                    width: dimensions.width,
+                                    height: dimensions.height * 1.07,
+                                }}
+                            />
+                            <View
+                                style={{
+                                    ...styles.form,
+                                    width: dimensions.width,
+                                    bottom: isShowKeyboard ? -190 : -10,
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        ...styles.cameraContainer,
+                                        left: dimensions.width / 2 - 60,
+                                    }}
                                 >
-                                    <Feather
-                                        style={styles.addPhoto}
-                                        name="plus"
-                                        size={13}
-                                        color="#FF6C00"
-                                    />
+                                    {state.photo && (
+                                        <Image
+                                            source={{
+                                                uri: state.photo,
+                                            }}
+                                            style={styles.preview}
+                                        />
+                                    )}
+                                    <TouchableOpacity
+                                        onPress={getCamera}
+                                        style={{
+                                            ...styles.addPhotoContainer,
+                                            borderColor: state.photo
+                                                ? "#BDBDBD"
+                                                : "#FF6C00",
+                                        }}
+                                    >
+                                        <Feather
+                                            style={
+                                                state.photo
+                                                    ? styles.resetPhoto
+                                                    : styles.addPhoto
+                                            }
+                                            name="plus"
+                                            size={18}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                                <Text style={styles.title}>Sign up</Text>
+                                <TextInput
+                                    value={state.login}
+                                    onChangeText={(value) =>
+                                        setState((prevState) => ({
+                                            ...prevState,
+                                            login: value,
+                                        }))
+                                    }
+                                    placeholder="Login"
+                                    placeholderTextColor={"#BDBDBD"}
+                                    onFocus={() => handleInputFocus("login")}
+                                    onBlur={() => handleInputBlur("login")}
+                                    style={
+                                        isFocused.login
+                                            ? [
+                                                  styles.input,
+                                                  { borderColor: "#FF6C00" },
+                                              ]
+                                            : styles.input
+                                    }
+                                />
+                                <TextInput
+                                    value={state.email}
+                                    onChangeText={(value) =>
+                                        setState((prevState) => ({
+                                            ...prevState,
+                                            email: value,
+                                        }))
+                                    }
+                                    placeholder="Email Address"
+                                    placeholderTextColor={"#BDBDBD"}
+                                    onFocus={() => handleInputFocus("email")}
+                                    onBlur={() => handleInputBlur("email")}
+                                    style={
+                                        isFocused.email
+                                            ? [
+                                                  styles.input,
+                                                  { borderColor: "#FF6C00" },
+                                              ]
+                                            : styles.input
+                                    }
+                                />
+                                <TextInput
+                                    value={state.password}
+                                    onChangeText={(value) =>
+                                        setState((prevState) => ({
+                                            ...prevState,
+                                            password: value,
+                                        }))
+                                    }
+                                    placeholder="Password"
+                                    placeholderTextColor={"#BDBDBD"}
+                                    onFocus={() => handleInputFocus("password")}
+                                    onBlur={() => handleInputBlur("password")}
+                                    secureTextEntry={!isShowPassword}
+                                    style={
+                                        isFocused.password
+                                            ? [
+                                                  styles.input,
+                                                  { borderColor: "#FF6C00" },
+                                              ]
+                                            : styles.input
+                                    }
+                                ></TextInput>
+                                <TouchableOpacity
+                                    onPress={() =>
+                                        setIsShowPassword(
+                                            (prevState) => !prevState
+                                        )
+                                    }
+                                    style={styles.showPasswordContainer}
+                                >
+                                    <Text style={styles.showPassword}>
+                                        {isShowPassword ? "Hide" : "Show"}
+                                    </Text>
                                 </TouchableOpacity>
-                            </Camera>
-                        </View>
-                        <Text style={styles.title}>Sign up</Text>
-                        <TextInput
-                            value={state.login}
-                            onChangeText={(value) =>
-                                setState((prevState) => ({
-                                    ...prevState,
-                                    login: value,
-                                }))
-                            }
-                            placeholder="Login"
-                            placeholderTextColor={"#BDBDBD"}
-                            onFocus={() => handleInputFocus("login")}
-                            onBlur={() => handleInputBlur("login")}
-                            style={
-                                isFocused.login
-                                    ? [styles.input, { borderColor: "#FF6C00" }]
-                                    : styles.input
-                            }
-                        />
-                        <TextInput
-                            value={state.email}
-                            onChangeText={(value) =>
-                                setState((prevState) => ({
-                                    ...prevState,
-                                    email: value,
-                                }))
-                            }
-                            placeholder="Email Address"
-                            placeholderTextColor={"#BDBDBD"}
-                            onFocus={() => handleInputFocus("email")}
-                            onBlur={() => handleInputBlur("email")}
-                            style={
-                                isFocused.email
-                                    ? [styles.input, { borderColor: "#FF6C00" }]
-                                    : styles.input
-                            }
-                        />
-                        <TextInput
-                            value={state.password}
-                            onChangeText={(value) =>
-                                setState((prevState) => ({
-                                    ...prevState,
-                                    password: value,
-                                }))
-                            }
-                            placeholder="Password"
-                            placeholderTextColor={"#BDBDBD"}
-                            onFocus={() => handleInputFocus("password")}
-                            onBlur={() => handleInputBlur("password")}
-                            secureTextEntry={!isShowPassword}
-                            style={
-                                isFocused.password
-                                    ? [styles.input, { borderColor: "#FF6C00" }]
-                                    : styles.input
-                            }
-                        ></TextInput>
-                        <TouchableOpacity
-                            onPress={() =>
-                                setIsShowPassword((prevState) => !prevState)
-                            }
-                            style={styles.showPasswordContainer}
-                        >
-                            <Text style={styles.showPassword}>
-                                {isShowPassword ? "Hide" : "Show"}
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.btn}
-                            onPress={() => onRegister()}
-                        >
-                            <Text style={styles.btnTitle}>Sign up</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            activeOpacity={0.8}
-                            style={styles.btnLogin}
-                            onPress={() => navigate("Login")}
-                        >
-                            <Text style={styles.btnLoginText}>
-                                Already have an account? Login
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                                <TouchableOpacity
+                                    activeOpacity={0.8}
+                                    style={styles.btn}
+                                    onPress={() => onRegister()}
+                                >
+                                    <Text style={styles.btnTitle}>Sign up</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    activeOpacity={0.8}
+                                    style={styles.btnLogin}
+                                    onPress={() => navigate("Login")}
+                                >
+                                    <Text style={styles.btnLoginText}>
+                                        Already have an account? Login
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
                 </View>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -272,13 +312,10 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
     },
-    photoContainer: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-
-        borderColor: "#F6F6F6",
-        borderWidth: 1,
+    preview: {
+        width: "100%",
+        height: "100%",
+        borderRadius: 8,
     },
     cameraContainer: {
         flex: 1,
@@ -288,13 +325,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#F6F6F6",
         borderRadius: 16,
         top: -60,
-    },
-    camera: {
-        flex: 1,
-        width: 120,
-        maxHeight: 120,
-        backgroundColor: "transparent",
-        borderRadius: 16,
     },
     addPhotoContainer: {
         position: "absolute",
@@ -306,12 +336,16 @@ const styles = StyleSheet.create({
         borderColor: "#FF6C00",
         borderWidth: 1,
         justifyContent: "center",
-
         borderRadius: 13,
     },
     addPhoto: {
-        // backgroundColor: "#FFF",
         textAlign: "center",
+        color: "#FF6C00",
+    },
+    resetPhoto: {
+        textAlign: "center",
+        color: "#BDBDBD",
+        transform: [{ rotate: "45deg" }],
     },
     title: {
         marginTop: 92,

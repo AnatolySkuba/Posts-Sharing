@@ -61,10 +61,6 @@ export default function ({ navigation }) {
         };
     }, []);
 
-    // console.log(Platform.OS, Platform);
-    // console.log(state, isShowKeyboard, new Date());
-    console.log(2, isShowKeyboard, dimensions.width);
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}

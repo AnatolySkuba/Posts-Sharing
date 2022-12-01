@@ -39,7 +39,6 @@ export default function CreatePostsScreen({ navigation }) {
     const [isFocused, setIsFocused] = useState({
         name: false,
         locality: false,
-        photo: false,
     });
 
     useEffect(() => {
@@ -102,7 +101,7 @@ export default function CreatePostsScreen({ navigation }) {
     async function uploadPhotoToServer() {
         const response = await fetch(state.photo);
         const file = await response.blob();
-        const uniquePhotoId = Date.now().toString();
+        const uniquePhotoId = login + Date.now().toString();
         await firebase.storage().ref(`postImage/${uniquePhotoId}`).put(file);
 
         const processedPhoto = await firebase

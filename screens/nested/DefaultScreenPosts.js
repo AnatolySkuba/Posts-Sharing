@@ -24,7 +24,6 @@ export default function DefaultScreenPosts({ navigation }) {
         });
     }
 
-    console.log(22, posts);
     useEffect(() => {
         getAllPosts();
     }, []);

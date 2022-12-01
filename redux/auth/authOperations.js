@@ -11,22 +11,32 @@ import { Alert } from "react-native";
 
 import { authSlice } from "./authReducer";
 
-export async function authSignUpUser(dispatch, { login, email, password }) {
+// const user = getAuth(auth);
+
+export async function authSignUpUser(
+    dispatch,
+    { login, email, password },
+    photo
+) {
     const user = getAuth(auth);
 
     try {
         await createUserWithEmailAndPassword(user, email, password);
-        await updateProfile(user.currentUser, { displayName: login });
+        await updateProfile(user.currentUser, {
+            displayName: login,
+            photoURL: photo,
+        });
     } catch (error) {
         Alert.alert("Sign up error", error.message);
     }
 
-    const { displayName, uid } = user.currentUser;
+    const { displayName, uid, photoURL } = user.currentUser;
 
     dispatch(
         authSlice.actions.updateUserProfile({
             userId: uid,
             login: displayName,
+            userPhoto: photoURL,
         })
     );
 }
@@ -60,8 +70,27 @@ export async function authStateChangeUser(dispatch) {
                 authSlice.actions.updateUserProfile({
                     userId: user.uid,
                     login: user.displayName,
+                    userPhoto: user.photoURL,
                 })
             );
         }
     });
+}
+
+export async function authChangeUserPhoto(dispatch, photo) {
+    const user = getAuth(auth);
+
+    await updateProfile(user.currentUser, {
+        photoURL: photo,
+    });
+
+    const { displayName, uid, photoURL } = user.currentUser;
+
+    dispatch(
+        authSlice.actions.updateUserProfile({
+            userId: uid,
+            login: displayName,
+            userPhoto: photoURL,
+        })
+    );
 }
