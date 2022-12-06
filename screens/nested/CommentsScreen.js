@@ -12,7 +12,14 @@ import {
     Keyboard,
     StyleSheet,
 } from "react-native";
-import { collection, addDoc, onSnapshot } from "firebase/firestore";
+import {
+    collection,
+    addDoc,
+    onSnapshot,
+    doc,
+    updateDoc,
+    increment,
+} from "firebase/firestore";
 import { useSelector } from "react-redux";
 import { Feather } from "@expo/vector-icons";
 
@@ -73,6 +80,9 @@ export default function CommentsScreen({ navigation, route }) {
                 date,
             });
             setComment("");
+            updateDoc(doc(db, "posts", postId), {
+                commentsQuantity: increment(1),
+            });
         }
         keyboardHide();
     }

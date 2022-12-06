@@ -92,6 +92,7 @@ export default function CreatePostsScreen({ navigation }) {
                     text: "Ok",
                 },
             ]);
+
             return;
         }
 
@@ -122,6 +123,9 @@ export default function CreatePostsScreen({ navigation }) {
                 photo,
                 postName: state.name,
                 locality: state.locality,
+                commentsQuantity: 0,
+                likesQuantity: [],
+                date: Date.now(),
             });
             console.log("Post written with ID: ", createPost.id);
         } catch (error) {
@@ -131,7 +135,8 @@ export default function CreatePostsScreen({ navigation }) {
 
     function publish() {
         uploadPostToServer();
-        navigation.navigate("DefaultScreen");
+        setState(initialState);
+        navigation.goBack();
     }
 
     return (
