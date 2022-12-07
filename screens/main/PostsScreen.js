@@ -27,7 +27,10 @@ export default function PostsScreen({ navigation }) {
                           });
                 },
             }}
-            screenOptions={{ headerShown: false }}
+            screenOptions={{
+                headerShown: false,
+                cardStyle: { backgroundColor: "#fff" },
+            }}
         >
             <NestedScreen.Screen
                 name="DefaultScreen"

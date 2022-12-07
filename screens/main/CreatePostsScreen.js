@@ -167,109 +167,116 @@ export default function CreatePostsScreen({ navigation }) {
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.container}>
-                                <View style={styles.photo}>
-                                    {state.photo && (
-                                        <Image
-                                            source={{
-                                                uri: state.photo,
-                                            }}
-                                            style={styles.preview}
-                                        />
-                                    )}
-                                    <TouchableOpacity
-                                        onPress={getCamera}
-                                        style={styles.photoIcon}
-                                    >
-                                        <Svg
-                                            width={24}
-                                            height={24}
-                                            viewBox="0 0 24 24"
+                                <View>
+                                    <View style={styles.photo}>
+                                        {state.photo && (
+                                            <Image
+                                                source={{
+                                                    uri: state.photo,
+                                                }}
+                                                style={styles.preview}
+                                            />
+                                        )}
+                                        <TouchableOpacity
+                                            onPress={getCamera}
+                                            style={styles.photoIcon}
                                         >
-                                            <Path
-                                                d="M11.9998 15.2C13.7671 15.2 15.1998 13.7673 15.1998 12C15.1998 10.2327 13.7671 8.79999 11.9998 8.79999C10.2325 8.79999 8.7998 10.2327 8.7998 12C8.7998 13.7673 10.2325 15.2 11.9998 15.2Z"
-                                                fill="#BDBDBD"
-                                            />
-                                            <Path
-                                                d="M9 2L7.17 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4H16.83L15 2H9ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17Z"
-                                                fill="#BDBDBD"
-                                            />
-                                        </Svg>
-                                    </TouchableOpacity>
-                                </View>
-                                <ImageUpload setState={setState} />
-                                <TextInput
-                                    value={state.name}
-                                    onChangeText={(value) =>
-                                        setState((prevState) => ({
-                                            ...prevState,
-                                            name: value,
-                                        }))
-                                    }
-                                    placeholder="Name..."
-                                    placeholderTextColor={"#BDBDBD"}
-                                    onFocus={() => handleInputFocus("name")}
-                                    onBlur={() => handleInputBlur("name")}
-                                    style={{
-                                        ...styles.input,
-                                        borderBottomColor: isFocused.name
-                                            ? "#FF6C00"
-                                            : "#E8E8E8",
-                                    }}
-                                />
-                                <TextInput
-                                    value={state.locality.name}
-                                    onChangeText={(value) =>
-                                        setState((prevState) => ({
-                                            ...prevState,
-                                            locality: { name: value },
-                                        }))
-                                    }
-                                    placeholder="Locality..."
-                                    placeholderTextColor={"#BDBDBD"}
-                                    onFocus={() => handleInputFocus("locality")}
-                                    onBlur={() => handleInputBlur("locality")}
-                                    style={{
-                                        ...styles.input,
-                                        paddingLeft: 25,
-                                        borderBottomColor: isFocused.locality
-                                            ? "#FF6C00"
-                                            : "#E8E8E8",
-                                    }}
-                                />
-                                <Locality setState={setState} />
-                                <TouchableOpacity
-                                    activeOpacity={0.8}
-                                    style={{
-                                        ...styles.btn,
-                                        backgroundColor:
-                                            state.name &&
-                                            state.locality &&
-                                            state.photo
-                                                ? "#FF6C00"
-                                                : "#F6F6F6",
-                                    }}
-                                    onPress={() => publish()}
-                                >
-                                    <Text
+                                            <Svg
+                                                width={24}
+                                                height={24}
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <Path
+                                                    d="M11.9998 15.2C13.7671 15.2 15.1998 13.7673 15.1998 12C15.1998 10.2327 13.7671 8.79999 11.9998 8.79999C10.2325 8.79999 8.7998 10.2327 8.7998 12C8.7998 13.7673 10.2325 15.2 11.9998 15.2Z"
+                                                    fill="#BDBDBD"
+                                                />
+                                                <Path
+                                                    d="M9 2L7.17 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4H16.83L15 2H9ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17Z"
+                                                    fill="#BDBDBD"
+                                                />
+                                            </Svg>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <ImageUpload setState={setState} />
+                                    <TextInput
+                                        value={state.name}
+                                        onChangeText={(value) =>
+                                            setState((prevState) => ({
+                                                ...prevState,
+                                                name: value,
+                                            }))
+                                        }
+                                        placeholder="Name..."
+                                        placeholderTextColor={"#BDBDBD"}
+                                        onFocus={() => handleInputFocus("name")}
+                                        onBlur={() => handleInputBlur("name")}
                                         style={{
-                                            ...styles.btnTitle,
-                                            color:
+                                            ...styles.input,
+                                            borderBottomColor: isFocused.name
+                                                ? "#FF6C00"
+                                                : "#E8E8E8",
+                                        }}
+                                    />
+                                    <TextInput
+                                        value={state.locality.name}
+                                        onChangeText={(value) =>
+                                            setState((prevState) => ({
+                                                ...prevState,
+                                                locality: { name: value },
+                                            }))
+                                        }
+                                        placeholder="Locality..."
+                                        placeholderTextColor={"#BDBDBD"}
+                                        onFocus={() =>
+                                            handleInputFocus("locality")
+                                        }
+                                        onBlur={() =>
+                                            handleInputBlur("locality")
+                                        }
+                                        style={{
+                                            ...styles.input,
+                                            paddingLeft: 25,
+                                            borderBottomColor:
+                                                isFocused.locality
+                                                    ? "#FF6C00"
+                                                    : "#E8E8E8",
+                                        }}
+                                    />
+                                    <Locality setState={setState} />
+                                    <TouchableOpacity
+                                        activeOpacity={0.8}
+                                        style={{
+                                            ...styles.btn,
+                                            backgroundColor:
                                                 state.name &&
                                                 state.locality &&
                                                 state.photo
-                                                    ? "#FFF"
-                                                    : "#BDBDBD",
+                                                    ? "#FF6C00"
+                                                    : "#F6F6F6",
                                         }}
+                                        onPress={() => publish()}
                                     >
-                                        Publish
-                                    </Text>
-                                </TouchableOpacity>
+                                        <Text
+                                            style={{
+                                                ...styles.btnTitle,
+                                                color:
+                                                    state.name &&
+                                                    state.locality &&
+                                                    state.photo
+                                                        ? "#FFF"
+                                                        : "#BDBDBD",
+                                            }}
+                                        >
+                                            Publish
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
                                 {!isShowKeyboard && (
                                     <TouchableOpacity
                                         onPress={() => setState(initialState)}
                                         style={{
                                             ...styles.trash,
-                                            left: dimensions.width / 2 - 35,
+                                            left: dimensions.width / 2 - 52,
                                         }}
                                     >
                                         <Feather
@@ -289,12 +296,11 @@ export default function CreatePostsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    containerScreen: { flex: 1 },
+    containerScreen: { flex: 1, backgroundColor: "#FFF" },
     header: {
         justifyContent: "flex-end",
         paddingBottom: 11,
         height: 88,
-        backgroundColor: "#FFFFFF",
         borderBottomColor: "rgba(0, 0, 0,0.1 )",
         borderBottomWidth: 1,
     },
@@ -308,7 +314,11 @@ const styles = StyleSheet.create({
         color: "#212121",
     },
     arrowLeftContainer: { position: "absolute", bottom: 11, left: 20 },
-    container: { flex: 1, paddingHorizontal: 17, backgroundColor: "#FFFFFF" },
+    container: {
+        flex: 1,
+        paddingHorizontal: 17,
+        justifyContent: "space-between",
+    },
     photo: {
         height: 240,
         marginTop: 32,
@@ -358,8 +368,7 @@ const styles = StyleSheet.create({
     trash: {
         width: 70,
         height: 40,
-        position: "absolute",
-        bottom: 34,
+        marginBottom: 34,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#F6F6F6",

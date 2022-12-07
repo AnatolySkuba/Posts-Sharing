@@ -26,8 +26,8 @@ import { authSignOutUser } from "../../redux/auth/authOperations";
 export default function DefaultScreenPosts({ navigation }) {
     const dispatch = useDispatch();
     const [posts, setPosts] = useState([]);
-    const { userId } = useSelector((state) => state.auth);
     const [isFingerUp, setIsFingerUp] = useState({});
+    const { userId } = useSelector((state) => state.auth);
 
     async function getAllPosts() {
         onSnapshot(collection(db, "posts"), (data) => {
@@ -38,7 +38,7 @@ export default function DefaultScreenPosts({ navigation }) {
 
     useEffect(() => {
         getAllPosts();
-    }, []);
+    }, [userId]);
 
     async function handleLike(postId, userId) {
         const likedPosts = await getDoc(doc(db, "posts", postId));
@@ -52,6 +52,7 @@ export default function DefaultScreenPosts({ navigation }) {
 
     async function isLiked(postId, userId) {
         const likedPosts = await getDoc(doc(db, "posts", postId));
+
         setIsFingerUp((prevState) => ({
             ...prevState,
             [postId]: likedPosts

@@ -122,77 +122,84 @@ export default function CommentsScreen({ navigation, route }) {
                                 style={styles.image}
                             />
                         </View>
-                        <SafeAreaView>
-                            <FlatList
-                                data={allComments}
-                                renderItem={({ item }) => (
-                                    <View
-                                        style={{
-                                            ...styles.commentContainer,
-                                            flexDirection:
-                                                item.userPhoto === userPhoto
-                                                    ? "row-reverse"
-                                                    : "row",
-                                        }}
-                                    >
-                                        <View style={styles.userPhotoContainer}>
-                                            <Image
-                                                source={{ uri: item.userPhoto }}
-                                                style={styles.userPhoto}
-                                            />
-                                        </View>
+                        <View style={styles.commentsContainer}>
+                            <SafeAreaView>
+                                <FlatList
+                                    data={allComments}
+                                    renderItem={({ item }) => (
                                         <View
                                             style={{
-                                                ...styles.commentTextContainer,
-                                                width: dimensions.width - 76,
+                                                ...styles.commentContainer,
+                                                flexDirection:
+                                                    item.userPhoto === userPhoto
+                                                        ? "row-reverse"
+                                                        : "row",
                                             }}
                                         >
-                                            <Text style={styles.commentText}>
-                                                {item.comment}
-                                            </Text>
-                                            <Text style={styles.commentDate}>
-                                                {item.date}
-                                            </Text>
+                                            <View
+                                                style={
+                                                    styles.userPhotoContainer
+                                                }
+                                            >
+                                                <Image
+                                                    source={{
+                                                        uri: item.userPhoto,
+                                                    }}
+                                                    style={styles.userPhoto}
+                                                />
+                                            </View>
+                                            <View
+                                                style={{
+                                                    ...styles.commentTextContainer,
+                                                    width:
+                                                        dimensions.width - 76,
+                                                }}
+                                            >
+                                                <Text
+                                                    style={styles.commentText}
+                                                >
+                                                    {item.comment}
+                                                </Text>
+                                                <Text
+                                                    style={styles.commentDate}
+                                                >
+                                                    {item.date}
+                                                </Text>
+                                            </View>
                                         </View>
-                                    </View>
-                                )}
-                                keyExtractor={(item) => item.id}
-                            />
-                        </SafeAreaView>
-                        <View
-                            style={{
-                                ...styles.form,
-                                width: dimensions.width,
-                                bottom: isShowKeyboard ? -56 : 0,
-                            }}
-                        >
-                            <TextInput
-                                value={comment}
-                                onChangeText={(value) => setComment(value)}
-                                placeholder="Comment..."
-                                placeholderTextColor={"#BDBDBD"}
-                                onFocus={() => handleInputFocus()}
-                                onBlur={() => handleInputBlur()}
-                                multiline={true}
-                                style={{
-                                    ...styles.input,
-                                    width: dimensions.width - 32,
-                                    borderBottomColor: isFocused
-                                        ? "#FF6C00"
-                                        : "#E8E8E8",
-                                }}
-                            />
-                            <TouchableOpacity
-                                activeOpacity={0.8}
-                                style={styles.btn}
-                                onPress={() => createComment()}
-                            >
-                                <Feather
-                                    name="arrow-up"
-                                    size={24}
-                                    color="#FFF"
+                                    )}
+                                    keyExtractor={(item) => item.id}
                                 />
-                            </TouchableOpacity>
+                            </SafeAreaView>
+                            <View>
+                                <TextInput
+                                    value={comment}
+                                    onChangeText={(value) => setComment(value)}
+                                    placeholder="Comment..."
+                                    placeholderTextColor={"#BDBDBD"}
+                                    onFocus={() => handleInputFocus()}
+                                    onBlur={() => handleInputBlur()}
+                                    multiline={true}
+                                    style={{
+                                        ...styles.input,
+                                        width: dimensions.width - 32,
+                                        borderBottomColor: isFocused
+                                            ? "#FF6C00"
+                                            : "#E8E8E8",
+                                    }}
+                                />
+                                <TouchableOpacity
+                                    activeOpacity={0.8}
+                                    style={styles.btn}
+                                    onPress={() => createComment()}
+                                >
+                                    <Feather
+                                        name="arrow-up"
+                                        size={24}
+                                        color="#FFF"
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -204,17 +211,17 @@ export default function CommentsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     containerScreen: {
         flex: 1,
+        backgroundColor: "#FFF",
     },
     container: {
         flex: 1,
         paddingHorizontal: 16,
-        backgroundColor: "#FFF",
+        paddingBottom: 16,
     },
     header: {
         justifyContent: "flex-end",
         paddingBottom: 11,
         height: 88,
-        backgroundColor: "#FFF",
         borderBottomColor: "rgba(0, 0, 0,0.1 )",
         borderBottomWidth: 1,
     },
@@ -228,14 +235,6 @@ const styles = StyleSheet.create({
         color: "#212121",
     },
     arrowLeftContainer: { position: "absolute", bottom: 11, left: 20 },
-    form: {
-        position: "absolute",
-        left: 0,
-        bottom: 0,
-        backgroundColor: "#FFF",
-        padding: 16,
-        justifyContent: "flex-end",
-    },
     imageContainer: {
         marginTop: 32,
         marginBottom: 34,
@@ -247,6 +246,7 @@ const styles = StyleSheet.create({
         objectFit: "cover",
     },
     image: { width: "100%", height: "100%", borderRadius: 8 },
+    commentsContainer: { flex: 1, justifyContent: "space-between" },
     commentContainer: {
         marginBottom: 24,
         justifyContent: "space-between",
@@ -294,8 +294,8 @@ const styles = StyleSheet.create({
     },
     btn: {
         position: "absolute",
-        right: 30,
-        bottom: 29,
+        right: 14,
+        bottom: 13,
         width: 34,
         height: 34,
         alignItems: "center",
