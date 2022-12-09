@@ -4,11 +4,11 @@ import {
     View,
     Image,
     Text,
-    TextInput,
     TouchableOpacity,
     Platform,
     KeyboardAvoidingView,
     Keyboard,
+    ActivityIndicator,
     TouchableWithoutFeedback,
 } from "react-native";
 import { useDispatch } from "react-redux";
@@ -17,6 +17,7 @@ import { Feather } from "@expo/vector-icons";
 
 import PhotoCamera from "../../component/PhotoCamera";
 import { firebase } from "../../firebase/config";
+import AuthTextInput from "../../hooks/AuthTextInput";
 import { useDimensions } from "../../hooks/Dimensions";
 import { authSignUpUser } from "../../redux/auth/authOperations";
 
@@ -33,11 +34,7 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [isCamera, setIsCamera] = useState(false);
     const [state, setState] = useState(initialState);
-    const [isFocused, setIsFocused] = useState({
-        login: false,
-        email: false,
-        password: false,
-    });
+    const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -53,19 +50,6 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
             hideSubscription.remove();
         };
     }, []);
-
-    function handleInputFocus(textInput) {
-        setIsFocused({
-            [textInput]: true,
-        });
-        setIsShowKeyboard(true);
-    }
-
-    function handleInputBlur(textInput) {
-        setIsFocused({
-            [textInput]: false,
-        });
-    }
 
     function keyboardHide() {
         setIsShowKeyboard(false);
@@ -122,9 +106,11 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
     }
 
     async function onRegister() {
+        setIsLoading(true);
         const photo = await uploadPhotoToServer();
-        authSignUpUser(dispatch, state, photo);
+        await authSignUpUser(dispatch, state, photo);
         setState(initialState);
+        setIsLoading(false);
     }
 
     return (
@@ -191,70 +177,28 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
                                     </TouchableOpacity>
                                 </View>
                                 <Text style={styles.title}>Sign up</Text>
-                                <TextInput
-                                    value={state.login}
-                                    onChangeText={(value) =>
-                                        setState((prevState) => ({
-                                            ...prevState,
-                                            login: value,
-                                        }))
-                                    }
+                                <AuthTextInput
+                                    name="login"
                                     placeholder="Login"
-                                    placeholderTextColor={"#BDBDBD"}
-                                    onFocus={() => handleInputFocus("login")}
-                                    onBlur={() => handleInputBlur("login")}
-                                    style={
-                                        isFocused.login
-                                            ? [
-                                                  styles.input,
-                                                  { borderColor: "#FF6C00" },
-                                              ]
-                                            : styles.input
-                                    }
+                                    state={state}
+                                    setState={setState}
+                                    setIsShowKeyboard={setIsShowKeyboard}
                                 />
-                                <TextInput
-                                    value={state.email}
-                                    onChangeText={(value) =>
-                                        setState((prevState) => ({
-                                            ...prevState,
-                                            email: value,
-                                        }))
-                                    }
+                                <AuthTextInput
+                                    name="email"
                                     placeholder="Email Address"
-                                    placeholderTextColor={"#BDBDBD"}
-                                    onFocus={() => handleInputFocus("email")}
-                                    onBlur={() => handleInputBlur("email")}
-                                    style={
-                                        isFocused.email
-                                            ? [
-                                                  styles.input,
-                                                  { borderColor: "#FF6C00" },
-                                              ]
-                                            : styles.input
-                                    }
+                                    state={state}
+                                    setState={setState}
+                                    setIsShowKeyboard={setIsShowKeyboard}
                                 />
-                                <TextInput
-                                    value={state.password}
-                                    onChangeText={(value) =>
-                                        setState((prevState) => ({
-                                            ...prevState,
-                                            password: value,
-                                        }))
-                                    }
+                                <AuthTextInput
+                                    name="password"
                                     placeholder="Password"
-                                    placeholderTextColor={"#BDBDBD"}
-                                    onFocus={() => handleInputFocus("password")}
-                                    onBlur={() => handleInputBlur("password")}
-                                    secureTextEntry={!isShowPassword}
-                                    style={
-                                        isFocused.password
-                                            ? [
-                                                  styles.input,
-                                                  { borderColor: "#FF6C00" },
-                                              ]
-                                            : styles.input
-                                    }
-                                ></TextInput>
+                                    state={state}
+                                    setState={setState}
+                                    setIsShowKeyboard={setIsShowKeyboard}
+                                    isShowPassword={isShowPassword}
+                                />
                                 <TouchableOpacity
                                     onPress={() =>
                                         setIsShowPassword(
@@ -272,6 +216,12 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
                                     style={styles.btn}
                                     onPress={() => onRegister()}
                                 >
+                                    {isLoading && (
+                                        <ActivityIndicator
+                                            size="small"
+                                            color="white"
+                                        />
+                                    )}
                                     <Text style={styles.btnTitle}>Sign up</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
@@ -358,20 +308,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0.01,
         color: "#212121",
     },
-    input: {
-        marginBottom: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "#E8E8E8",
-        height: 50,
-        backgroundColor: "#F6F6F6",
-        borderRadius: 8,
-        fontFamily: "Roboto-Regular",
-        fontWeight: "400",
-        fontSize: 16,
-        lineHeight: 19,
-        color: "#212121",
-    },
     showPasswordContainer: { position: "relative" },
     showPassword: {
         position: "absolute",
@@ -384,14 +320,16 @@ const styles = StyleSheet.create({
         color: "#1B4371",
     },
     btn: {
+        flexDirection: "row",
         marginTop: 43,
         paddingVertical: 16,
         alignItems: "center",
-        // backgroundColor: Platform.OS === "ios" ? "transparent" : "#FF6C00",
+        justifyContent: "center",
         backgroundColor: "#FF6C00",
         borderRadius: 100,
     },
     btnTitle: {
+        marginLeft: 10,
         fontFamily: "Roboto-Regular",
         fontWeight: "400",
         fontSize: 16,

@@ -40,17 +40,17 @@ export default function DefaultScreenPosts({ navigation }) {
         getAllPosts();
     }, [userId]);
 
-    async function handleLike(postId, userId) {
+    async function handleLike(postId) {
         const likedPosts = await getDoc(doc(db, "posts", postId));
         if (likedPosts.data().likesQuantity.some((id) => id === userId)) {
-            removeUserId(postId, userId);
+            removeUserId(postId);
         } else {
-            addUserId(postId, userId);
+            addUserId(postId);
         }
-        isLiked(postId, userId);
+        isLiked(postId);
     }
 
-    async function isLiked(postId, userId) {
+    async function isLiked(postId) {
         const likedPosts = await getDoc(doc(db, "posts", postId));
 
         setIsFingerUp((prevState) => ({
@@ -61,13 +61,13 @@ export default function DefaultScreenPosts({ navigation }) {
         }));
     }
 
-    async function addUserId(postId, userId) {
+    async function addUserId(postId) {
         await updateDoc(doc(db, "posts", postId), {
             likesQuantity: arrayUnion(userId),
         });
     }
 
-    async function removeUserId(postId, userId) {
+    async function removeUserId(postId) {
         await updateDoc(doc(db, "posts", postId), {
             likesQuantity: arrayRemove(userId),
         });
@@ -145,9 +145,7 @@ export default function DefaultScreenPosts({ navigation }) {
                                             {item.commentsQuantity}
                                         </Text>
                                         <TouchableOpacity
-                                            onPress={() =>
-                                                handleLike(item.id, item.userId)
-                                            }
+                                            onPress={() => handleLike(item.id)}
                                         >
                                             <Feather
                                                 name="thumbs-up"

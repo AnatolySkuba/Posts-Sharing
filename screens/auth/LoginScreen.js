@@ -68,27 +68,18 @@ export default function ({ navigation }) {
         >
             <TouchableWithoutFeedback onPress={keyboardHide}>
                 <View
-                    // style={styles.container}
                     style={{
                         ...styles.container,
-                        // width: dimensions.width,
-                        // height: dimensions.height,
                     }}
                 >
                     <Image
                         source={require("../../assets/images/bg.jpg")}
-                        // style={styles.image}
                         style={{
                             ...styles.image,
                             width: dimensions.width,
                             height: dimensions.height * 1.07,
                         }}
                     />
-                    {/* <SafeAreaView style={styles.container2}>
-                        <ScrollView
-                            contentContainerStyle={{ flex: 1 }}
-                            style={styles.scrollView}
-                        > */}
                     <View
                         style={{
                             ...styles.form,
@@ -139,8 +130,6 @@ export default function ({ navigation }) {
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    {/* </ScrollView>
-                    </SafeAreaView> */}
                 </View>
             </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -154,7 +143,6 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         backgroundColor: "pink",
-        // marginHorizontal: 20,
         flex: 1,
     },
     container: {
@@ -163,8 +151,6 @@ const styles = StyleSheet.create({
     },
     image: {
         flex: 1,
-        // width: width,
-        // height: height * 1.07,
         position: "absolute",
         top: 0,
         left: 0,
@@ -173,7 +159,6 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: 0,
         left: 0,
-        // width: width,
         backgroundColor: "#FFF",
         paddingHorizontal: 16,
         borderTopLeftRadius: 25,
@@ -205,7 +190,6 @@ const styles = StyleSheet.create({
         marginTop: 43,
         paddingVertical: 16,
         alignItems: "center",
-        // backgroundColor: Platform.OS === "ios" ? "transparent" : "#FF6C00",
         backgroundColor: "#FF6C00",
         borderRadius: 100,
     },

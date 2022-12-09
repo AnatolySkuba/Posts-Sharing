@@ -11,8 +11,6 @@ import { Alert } from "react-native";
 
 import { authSlice } from "./authReducer";
 
-// const user = getAuth(auth);
-
 export async function authSignUpUser(
     dispatch,
     { login, email, password },
