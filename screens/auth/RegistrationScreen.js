@@ -106,6 +106,9 @@ export default function RegistrationScreen({ navigation: { navigate } }) {
     }
 
     async function onRegister() {
+        if (isLoading) {
+            return;
+        }
         setIsLoading(true);
         const photo = await uploadPhotoToServer();
         await authSignUpUser(dispatch, state, photo);
